@@ -34,7 +34,7 @@ extractHeader [] = Left $ Error "Extract header on empty list."
 extractHeader (s:ss) = Right $ map HeaderVar s
 
 extractDataForCase :: [[String]] -> IdIndex -> Id -> Either Error [DataVar]
-extractDataForCase ds (aa@(IdIndex idx)) (bb@(Id id0)) =         --i <- r (!!) idx
+extractDataForCase ds (IdIndex idx) (Id id0) =
     let filterF row = fmap (== id0) (atMay row idx) in
     
     let extractedCase = do
@@ -50,11 +50,9 @@ extractDataForCase ds (aa@(IdIndex idx)) (bb@(Id id0)) =         --i <- r (!!) i
         
 
 
-header = extractHeader dataz
 
-
-xow = do
-    h <- header
+result = do
+    h <- extractHeader dataz
     idx <- idIndex h
     d <- extractDataForCase dataz idx (Id "200BB")
     return d
