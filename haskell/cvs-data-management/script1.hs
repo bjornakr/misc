@@ -22,6 +22,8 @@ dataz = [
         ]
 
 
+-- indexOf :: String -> [HeaderVar] -> Maybe Int
+-- indexOf headerVars S = atMay headerVars s
 
 idIndex :: [HeaderVar] -> Either Error IdIndex
 idIndex hs = 
@@ -51,11 +53,25 @@ extractDataForCase ds (IdIndex idx) (Id id0) =
 
 
 
-result = do
+extractDataForCase  = do
     h <- extractHeader dataz
     idx <- idIndex h
     d <- extractDataForCase dataz idx (Id "200BB")
     return d
+
+
+selectVars :: [HeaderVar] -> [HeaderVar] -> [DataVar]
+filterVars vars header data0 =
+    let busque var = case atMay header var of
+        Nothing -> Left $ Error "Invalid variable: " ++ var
+        Just a -> Right a
+    
+    let indexes = mapM busque data0
+
+
+
+    map 
+
 
 
 
