@@ -7,9 +7,9 @@ import Safe
 import Data.Either
 import Control.Monad
 
-data DataSet = DataSet HeaderRow [DataRow]
-data HeaderRow = HeaderRow [HeaderVar]
-data DataRow = DataRow [DataVar]
+data DataSet = DataSet HeaderRow [DataRow] deriving Show
+data HeaderRow = HeaderRow [HeaderVar] deriving Show
+data DataRow = DataRow [DataVar] deriving Show
 data Error = Error String deriving (Show)
 data HeaderVar = HeaderVar String deriving (Eq)
 data DataVar = DataVar String 
