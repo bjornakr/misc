@@ -1,18 +1,20 @@
 #!/usr/bin/env stack
--- stack runghc --resolver lts-10.9 --install-ghc --package safe --package split
+-- stack runghc --resolver lts-11.0 --install-ghc --package safe --package split -Wall
 
 import Data.List
 import Data.List.Split
 import Safe
 import Data.Either
 import Control.Monad
+import System.Environment
+import System.IO
 
 data DataSet = DataSet HeaderRow [DataRow] deriving Show
 data HeaderRow = HeaderRow [HeaderVar] deriving Show
-data DataRow = DataRow [DataVar] deriving Show
+data DataRow = DataRow [DataVar] deriving (Show, Eq)
 data Error = Error String deriving (Show)
 data HeaderVar = HeaderVar String deriving (Eq)
-data DataVar = DataVar String 
+data DataVar = DataVar String deriving (Eq)
 
 instance Show DataVar where
     show (DataVar s) = "D " ++ s
@@ -25,10 +27,12 @@ data IdIndex = IdIndex Int deriving (Show)
 
 idVar = "id"
 
-dataz = [
-            ["id", "var1", "v2", "v3"],
-            ["100AA", "1", "2", "3"],
-            ["200BB", "1", "2", "3"]
+testDataSet = 
+    DataSet
+        (HeaderRow [HeaderVar "id", HeaderVar "var1", HeaderVar "var2", HeaderVar "var3"])
+        [
+            DataRow [DataVar "100AA", DataVar "1", DataVar "2", DataVar "3"],
+            DataRow [DataVar "200BB", DataVar "1", DataVar "2", DataVar "3"]
         ]
 
 
@@ -45,29 +49,32 @@ dataz = [
 -- ════════════════════════════════════════════════════════════════════════════════════
 
 
-idIndex :: [HeaderVar] -> Either Error IdIndex
-idIndex hs = 
-    case elemIndex (HeaderVar idVar) hs of
+idIndex :: HeaderRow -> Either Error IdIndex
+idIndex (HeaderRow hVars) = 
+    case elemIndex (HeaderVar idVar) hVars of
         Nothing -> Left $ Error ("Could not find index of id in header with variable name: " ++ idVar)
         Just i  -> Right $ IdIndex i
 
-extractHeader :: [[String]] -> Either Error [HeaderVar]
-extractHeader [] = Left $ Error "Extract header on empty list."
-extractHeader (s:ss) = Right $ map HeaderVar s
+--extractHeader :: DataSet -> Either Error HeaderRow
+--extractHeader (DataSet []) = Left $ Error "Extract header on empty data set."
+--extractHeader (DataSet (s:ss)) = Right $ s
 
-extractDataForCase :: [[String]] -> IdIndex -> Id -> Either Error [DataVar]
-extractDataForCase ds (IdIndex idx) (Id id0) =
-    let filterF row = fmap (== id0) (atMay row idx) in
+selectCase :: [DataRow] -> IdIndex -> Id -> Either Error DataRow
+selectCase drs (IdIndex idx) (Id id0) =
+
+    let 
+        filterF :: DataRow -> Maybe Bool
+        filterF (DataRow row) = fmap (== (DataVar id0)) (atMay row idx) in
     
     let extractedCase = do
-        k <- filterM filterF ds
+        k <- filterM filterF drs
         l <- headMay k
         return l    
         in
 
     case extractedCase of
         Nothing -> Left $ Error ("Could not find case with id " ++ (show id0) ++ " at index " ++ (show idx) ++ ".")
-        Just h -> Right $ map DataVar h
+        Just h -> Right $ h
 
         
 selectVars :: [HeaderVar] -> [HeaderVar] -> [DataVar] -> Either Error [DataVar]
@@ -82,17 +89,18 @@ selectVars vars header data0 =
     (fmap . map) (data0 !!) indexes
 
 
-extractDataForCasexz = do
-    h <- extractHeader dataz
-    idx <- idIndex h
-    d <- extractDataForCase dataz idx (Id "200BB")
+selectMegaCase :: Id -> DataSet -> Either Error DataRow
+selectMegaCase id0 (DataSet headerRow dataRows) = do
+    --h <- extractHeader data0
+    idx <- idIndex headerRow
+    d <- selectCase dataRows idx id0
     return d
 
 
 
-header = Data.Either.fromRight [] (extractHeader dataz)
-
-someCase = fromRight [] extractDataForCasexz
+-- header = fromRight [] (extractHeader dataz)
+someCase :: DataRow
+someCase = fromRight (error "Breakdown!") (selectMegaCase (Id "200BB") testDataSet)
 
 
 
@@ -133,30 +141,38 @@ parse s =
     toDataSet s2
 
 
---something fileName = do
---    fileContents <- readFile fileName
+testData = "id;var1;var2;var3\n100AA;1;2;3\n200BB;4;5;6"
 
 
---parse :: Handle -> IO [CbclRow]
---parse inHandle rows = do
---    readFile ""
---    isEof <- hIsEOF inHandle
---    if isEof
---    then 
---        return rows
---    else do
---        row <- hGetLine inHandle
---        parse inHandle ((splitRow row):rows)
+
+
+processFile :: Handle -> IO DataSet
+processFile h = ???
 
 
 
 
 
 
+main = do
+    --args <- getArgs
+    --let handle = case args of
+    --    [] -> putStrLn("Hello world")
+    --    file:_ ->
+    --        withFile file ReadMode 
 
-
-
-
-main = do   
-    let a = [1, 2, 3, 4]
-    putStrLn "Hello world!"
+    --let a = [1, 2, 3, 4]
+    c <- hGetContents
+    let case200 = do 
+        ds <- parse c
+        case0 <- selectMegaCase (Id "200BB") ds
+        return case0
+    case case200 of
+        Left(Error msg) -> 
+            putStrLn msg
+        Right(val) -> 
+            putStrLn $ show val
+    
+    -- let dataset = parse c >>= selectMegaCase (Id "200BB") dataset
+ 
+    
