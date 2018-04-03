@@ -1,0 +1,121 @@
+Kubernetes workshop
+
+Session #1
+
+lsblk
+df -h
+fdisk -l
+fdisk /dev/sdb
+n, defaults, w
+
+https://cloud.google.com/compute/docs/disks/add-persistent-disk
+
+sudo mkfs.ext4 -m 0 -F -E lazy_itable_init=0,lazy_journal_init=0,discard /dev/[dev_id]
+
+sudo mkdir -p /mnt/disks/[MNT_DIR]
+
+sudo mount -o discard,defaults /dev/sdb /mnt/disks/sdb
+
+sudo chmod a+w /mnt/disks/[MNT_DIR]
+
+sudo cp /etc/fstab /etc/fstab.backup
+
+sudo blkid /dev/[DEVICE_ID]
+
+# Kopier UUID
+
+vim /etc/fstab
+
+UUID=[UUID_VALUE] /mnt/disks/[MNT_DIR] ext4 discard,defaults,[NOFAIL_OPTION] 0 2
+
+
+
+
+https://kubernetes.io/docs/setup/independent/install-kubeadm/
+
+swapoff -a
+
+sudo su -
+
+sudo usermod -aG docker bjornakr
+
+
+ps aux
+
+
+ mkdir -p $HOME/.kube
+
+ sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+ sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+
+ You should now deploy a pod network to the cluster.
+Run "kubectl apply -f [podnetwork].yaml" with one of the options listed at:
+  https://kubernetes.io/docs/concepts/cluster-administration/addons/
+
+"One of the options" er et valgfritt virtuelt nettverkslag. Vi velger flanell.
+
+kubeadm reset
+
+
+
+
+# Using kubeadm to Create a Cluster
+https://kubernetes.io/docs/setup/independent/create-cluster-kubeadm/
+
+
+
+https://stackoverflow.com/questions/46360361/invalid-x509-certificate-for-kubernetes-master
+
+kubeadm init --apiserver-cert-extra-sans=130.211.96.39 --pod-network-cidr=10.244.0.0/16
+kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/v0.9.1/Documentation/kube-flannel.yml
+
+
+ifconfig -a
+
+
+
+
+
+
+
+kubeadm init --pod-network-cidr=10.244.0.0/16
+
+
+kubeadm join --token ba366d.d94f30fb62b447d2 10.132.0.2:6443 --discovery-token-ca-cert-hash sha256:d39a99d915cc893048555cd4658eeb54ab28c5b02220353cede94fb5a809f673
+
+som SU:
+export KUBECONFIG=/etc/kubernetes/admin.conf
+
+
+sysctl net.bridge.bridge-nf-call-iptables=1
+
+
+
+kubeadm join --token ba366d.d94f30fb62b447d2 10.132.0.2:6443 --discovery-token-ca-cert-hash sha256:d39a99d915cc893048555cd4658eeb54ab28c5b02220353cede94fb5a809f673
+
+
+
+watch kubectl get nodes
+
+
+scp root@130.211.96.39:/etc/kubernetes/admin.conf ~/.kube/config
+
+endre til ekstern ip ++
+ssh
+
+
+# Generer ny join-kommando
+kubeadm token generate
+kubeadm token create <generated-token> --print-join-command --ttl=0
+
+
+
+
+
+
+Utviklerne skal ikke ssh-e inn til kubernetes-nettet hver gang de skal gjøre noe. Derfor bruker de kubectl lokalt.
+
+Det
+
+

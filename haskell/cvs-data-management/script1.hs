@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack runghc --resolver lts-11.0 --install-ghc --package safe --package split -Wall
+-- stack runghc --resolver lts-11.0 --install-ghc --package safe --package split
 
 import Data.List
 import Data.List.Split
@@ -146,8 +146,8 @@ testData = "id;var1;var2;var3\n100AA;1;2;3\n200BB;4;5;6"
 
 
 
-processFile :: Handle -> IO DataSet
-processFile h = ???
+-- processFile :: Handle -> IO DataSet
+-- processFile h = ???
 
 
 
