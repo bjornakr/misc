@@ -141,3 +141,9 @@ kubectl delete pod helloworld-5d87555485-bbxtb
 
 alias ll="ls -lrt"
 
+
+
+kubectl delete -f deployment.yaml
+
+
+
